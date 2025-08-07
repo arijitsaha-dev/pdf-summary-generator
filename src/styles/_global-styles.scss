@@ -3,13 +3,15 @@
 /* DEFAULT STYLES */
 /**************************************************************/
 * {
-	font-family: $font-family;
-	// font-family: inherit;
+	font-family: 'Inter', sans-serif;
 	-moz-osx-font-smoothing: grayscale;
-	-webkit-font-smoothing: subpixel-antialiased;
+	-webkit-font-smoothing: antialiased;
 }
+
 html body {
-	// height: 100dvh;
+	height: 100dvh;
+	background-color: var(--secondary-color);
+	color: var(--text-primary);
 }
 a {
 	cursor: pointer;

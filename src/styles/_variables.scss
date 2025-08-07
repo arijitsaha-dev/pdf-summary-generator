@@ -18,6 +18,19 @@ $green100: #dcfce7;
 $green300: #86efac;
 $green500: #10b981;
 $green800: #065f46;
+
+/* DocuSummarize Theme */
+$primary-color: #0d7ff2; // Primary blue color
+$secondary-color: #f0f2f5; // Background color
+$text-primary: #111418; // Main text color
+$text-secondary: #60758a; // Secondary text color
+
+:root {
+  --primary-color: #{$primary-color};
+  --secondary-color: #{$secondary-color};
+  --text-primary: #{$text-primary};
+  --text-secondary: #{$text-secondary};
+}
 $yellow200: #fef08a;
 $yellow300: #fde047;
 $indigo100: #e0e7ff;
