@@ -1,0 +1,8 @@
+@forward "tailwindcss";
+@plugin "daisyui" {
+	themes:
+		corporate,
+		dark --default --prefersdark;
+	root: ":root";
+	logs: true;
+}

@@ -1,0 +1,37 @@
+/* SNACK BAR */
+/**************************************************************/
+@use '@angular/material' as mat;
+:root.snackbar-error {
+	@include mat.snack-bar-overrides((
+		supporting-text-font: inherit,
+		supporting-text-color: #ffffff,
+		container-color: #ef5350,
+	));
+}
+.snackbar-warning {
+	:root {
+		@include mat.snack-bar-overrides((
+			supporting-text-font: inherit,
+			supporting-text-color: #000000,
+			container-color: #ffecb3,
+		));
+	}
+}
+.snackbar-success {
+	:root {
+		@include mat.snack-bar-overrides((
+			supporting-text-font: inherit,
+			supporting-text-color: #ffffff,
+			container-color: #4caf50,
+		));
+	}
+}
+.snackbar-info {
+	:root {
+		@include mat.snack-bar-overrides((
+			supporting-text-font: inherit,
+			supporting-text-color: #ffffff,
+			container-color: #475bcd,
+		));
+	}
+}

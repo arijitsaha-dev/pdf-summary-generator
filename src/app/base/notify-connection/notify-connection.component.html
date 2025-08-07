@@ -1,0 +1,18 @@
+<!-- Not required, handled using snackbar -->
+@if (_dataShare.showAlert()) {
+	<div class="h-dvh relative flex justify-center items-center alert-box-overlay" (click)="hideWindow()" (tabindex)="(0)" (keyup.enter)="hideWindow()" tabindex="0">
+		<div class="flex justify-center items-center px-5 py-4 bg-white rounded">
+			@switch (_eventType()) {
+				@case ("offline") {
+					<em class="alert-icon fas fa-signal text-danger"></em>
+				}
+				@case ("online") {
+					<em class="alert-icon fas fa-signal text-success"></em>
+				}
+			}
+			<div class="pt-1 pl-2 font-bold">
+				<span class="h6">{{ _message() }}</span>
+			</div>
+		</div>
+	</div>
+}

@@ -1,0 +1,25 @@
+<!-- Main layout with flex structure -->
+<section class="flex min-h-dvh">
+	<section class="flex-none min-w-1/10"></section>
+	<section class="flex-1 flex flex-col">
+		<!-- Header (fixed height) -->
+	<app-header class="flex-none" />
+
+	<!-- Main content (flex-grow to take remaining space) -->
+	<app-main class="flex-1">
+		<router-outlet />
+	</app-main>
+	</section>
+	<section class="flex-none min-w-1/10"></section>
+
+	<!-- Footer (currently disabled) -->
+	<!-- <app-footer class="flex-none" /> -->
+</section>
+
+<!-- Global Spinner -->
+<ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fff" type="ball-atom" [fullScreen]="true">
+	<p style="color: white">Loading...</p>
+</ngx-spinner>
+
+<!-- Connection notification -->
+<app-notify-connection class="alert-container" [style.zIndex]="_dataShare['showAlert']() ? '999' : '-1'"></app-notify-connection>

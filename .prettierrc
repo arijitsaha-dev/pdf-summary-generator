@@ -1,0 +1,19 @@
+{
+	"semi": true,
+	"tabWidth": 4,
+	"useTabs": true,
+	"printWidth": 125,
+	"endOfLine": "auto",
+	"singleQuote": false,
+	"bracketSameLine": true,
+	"arrowParens": "always",
+	"htmlWhitespaceSensitivity": "strict",
+	"overrides": [
+		{
+			"files": "*.html",
+			"options": {
+				"printWidth": 1000
+			}
+		}
+	]
+}

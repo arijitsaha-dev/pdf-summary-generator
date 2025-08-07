@@ -1,0 +1,10 @@
+@use "index" as *;
+
+.footer-container {
+	height: 2rem;
+	font-size: 14px;
+}
+
+.custom-anchor {
+	color: $textLight;
+}

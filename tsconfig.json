@@ -1,0 +1,39 @@
+{
+	"compilerOptions": {
+		"baseUrl": "./",
+		"outDir": "./dist/out-tsc",
+		"strict": true,
+		"noImplicitOverride": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"skipLibCheck": true,
+		"isolatedModules": true,
+		"esModuleInterop": true,
+		"experimentalDecorators": true,
+		"moduleResolution": "bundler",
+		"importHelpers": true,
+		"target": "ES2022",
+		"module": "ES2022",
+		"sourceMap": true,
+		"declaration": false,
+		"resolveJsonModule": true,
+		"useDefineForClassFields": false,
+		"typeRoots": [
+			"node_modules/@types"
+		],
+		"lib": [
+			"ES2022",
+			"dom"
+		],
+		"allowSyntheticDefaultImports": true,
+		"forceConsistentCasingInFileNames": true,
+	},
+	"angularCompilerOptions": {
+		"enableI18nLegacyMessageIdFormat": false,
+		"strictInjectionParameters": true,
+		"strictInputAccessModifiers": true,
+		"strictTemplates": true,
+		"fullTemplateTypeCheck": true
+	}
+}

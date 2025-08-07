@@ -1,0 +1,14 @@
+<main class="h-full relative">
+	<!-- If a global sidebar in the application is needed, the code goes here -->
+	@if (_dataShare.sidebarActive()) {
+		<!-- <section #drawer class="example-sidenav" mode="side">
+					<p>Sidebar</p>
+				</section> -->
+	}
+	<!-- Router Outlet Content goes here -->
+	<div class="h-full relative p-[0.3rem]">
+		<div class="h-full relative rounded-sm">
+			<ng-content></ng-content>
+		</div>
+	</div>
+</main>

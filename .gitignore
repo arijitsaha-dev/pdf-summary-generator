@@ -1,0 +1,75 @@
+# Dependencies
+**/node_modules
+**/npm-debug.log
+**/yarn-error.log
+**/pnpm-debug.log
+**/.npm
+**/old-details
+**/old
+
+# Build output
+**/dist
+**/dist-ssr
+**/coverage
+**/tmp
+**/out-tsc
+**/bazel-out
+**/.nyc_output
+**/tsconfig.tsbuildinfo
+
+# Logs
+**/logs
+**/.log
+**.local
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+**/lerna-debug.log*
+**/chrome-profiler-events*.json
+**/speed-measure-plugin*.json
+
+# Environment variables
+**/.env
+
+# IDE specific files
+**/.vscode
+**/.idea
+**/.project
+**/.classpath
+**/.c9
+**/.launch
+**/.settings
+**/.sublime-workspace
+**/.angular
+**/.sass-cache
+**/.suo
+**/.ntvs*
+**/.njsproj
+**/.sln
+**/.sw?
+**/.cursor
+**/.windsurf
+**/.taskmaster/tasks
+**/.taskmaster/reports
+**/.taskmaster/templates
+
+# OS generated files
+**/.DS_Store
+**/.DS_Store?
+**/.Spotlight-V100
+**/.Trashes
+**/ehthumbs.db
+**/Thumbs.db
+
+# Tests
+**/coverage
+
+#Certificates
+**/*.crt
+
+# Sentry Config File
+**/.sentryclirc
+
+# Added by Task Master AI
+**/dev-debug.log

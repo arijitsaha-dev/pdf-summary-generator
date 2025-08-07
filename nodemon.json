@@ -1,0 +1,24 @@
+{
+	"name": "pdf-summary-generator",
+	"watch": [
+		"dist/pdf-summary-generator/server"
+	],
+	"delay": 2000,
+	"legacyWatch": true,
+	"verbose": true,
+	"execMap": {
+		"js": "node"
+	},
+	"env": {
+		"NODE_ENV": "development",
+		"PORT": "4000"
+	},
+	"exec": "node dist/pdf-summary-generator/server/server.mjs",
+	"ignore": [
+		"**/*.test.ts",
+		"**/*.spec.ts",
+		"node_modules",
+		".angular",
+		"src"
+	]
+}
