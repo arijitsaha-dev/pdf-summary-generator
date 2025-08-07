@@ -1,66 +1,27 @@
 <div class="mx-auto max-w-3xl text-center">
-  <h2 class="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
-    Summarize Your PDFs in a Flash
-  </h2>
-  <p class="mt-6 max-w-2xl mx-auto text-lg text-[var(--text-secondary)] sm:text-xl">
-    Tired of reading long documents? Our tool uses AI to create concise, easy-to-read summaries, giving you the key points in seconds.
-  </p>
-  <div class="mt-12">
-    <label 
-      class="group relative cursor-pointer" 
-      for="file-upload"
-      [class.opacity-50]="isUploading()"
-      [attr.aria-disabled]="isUploading()"
-      [attr.aria-busy]="isUploading()"
-      [attr.aria-live]="isUploading() ? 'polite' : 'off'"
-    >
-      <div 
-        class="flex h-16 items-center justify-center rounded-lg border-2 border-dashed border-[var(--primary-color)] bg-white px-8 text-base font-bold text-[var(--primary-color)] shadow-sm transition-all group-hover:bg-[var(--primary-color)] group-hover:text-white group-hover:shadow-lg"
-        [class.cursor-not-allowed]="isUploading()"
-      >
-        @if (!isUploading()) {
-          <svg 
-            class="mr-3 h-6 w-6" 
-            fill="currentColor" 
-            viewBox="0 0 20 20" 
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <path 
-              clip-rule="evenodd" 
-              d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" 
-              fill-rule="evenodd"
-            ></path>
-          </svg>
-        } @else {
-          <svg 
-            class="mr-3 h-6 w-6 animate-spin" 
-            xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        }
-        <span>{{ uploadButtonText() }}</span>
-      </div>
-      <input 
-        class="sr-only" 
-        id="file-upload" 
-        name="file-upload" 
-        type="file"
-        accept=".pdf"
-        [disabled]="isUploading()"
-        (change)="onFileSelected($event)"
-        aria-label="Upload a PDF file"
-      />
-    </label>
-    @if (errorMessage()) {
-      <div class="mt-4 text-red-500 text-sm" role="alert">
-        {{ errorMessage() }}
-      </div>
-    }
-  </div>
+	<h2 class="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl"> Summarize Your PDFs in a Flash </h2>
+	<p class="mt-6 max-w-2xl mx-auto text-lg text-[var(--text-secondary)] sm:text-xl"> Tired of reading long documents? Our tool uses AI to create concise, easy-to-read summaries, giving you the key points in seconds. </p>
+	<div class="mt-12">
+		<label class="group relative cursor-pointer" for="file-upload" [class.opacity-50]="isUploading()" [attr.aria-disabled]="isUploading()" [attr.aria-busy]="isUploading()" [attr.aria-live]="isUploading() ? 'polite' : 'off'">
+			<div class="flex h-16 items-center justify-center rounded-lg border-2 border-dashed border-[var(--primary-color)] bg-white px-8 text-base font-bold text-[var(--primary-color)] shadow-sm transition-all group-hover:bg-[var(--primary-color)] group-hover:text-white group-hover:shadow-lg" [class.cursor-not-allowed]="isUploading()">
+				@if (!isUploading()) {
+					<svg class="mr-3 h-6 w-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+						<path clip-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" fill-rule="evenodd"></path>
+					</svg>
+				} @else {
+					<svg class="mr-3 h-6 w-6 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+					</svg>
+				}
+				<span>{{ uploadButtonText() }}</span>
+			</div>
+			<input class="sr-only" id="file-upload" name="file-upload" type="file" accept=".pdf" [disabled]="isUploading()" (change)="onFileSelected($event)" aria-label="Upload a PDF file" />
+		</label>
+		@if (errorMessage()) {
+			<div class="mt-4 text-red-500 text-sm" role="alert">
+				{{ errorMessage() }}
+			</div>
+		}
+	</div>
 </div>

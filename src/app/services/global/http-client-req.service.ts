@@ -2,7 +2,7 @@ import type { HttpParams } from "@angular/common/http";
 import { HttpClient } from "@angular/common/http";
 import type { OnDestroy } from "@angular/core";
 import { inject, Injectable } from "@angular/core";
-import type { Observable} from "rxjs";
+import type { Observable } from "rxjs";
 import { Subject } from "rxjs";
 import { environment } from "src/environments/environment";
 

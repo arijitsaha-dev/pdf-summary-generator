@@ -26,10 +26,10 @@ $text-primary: #111418; // Main text color
 $text-secondary: #60758a; // Secondary text color
 
 :root {
-  --primary-color: #{$primary-color};
-  --secondary-color: #{$secondary-color};
-  --text-primary: #{$text-primary};
-  --text-secondary: #{$text-secondary};
+	--primary-color: #{$primary-color};
+	--secondary-color: #{$secondary-color};
+	--text-primary: #{$text-primary};
+	--text-secondary: #{$text-secondary};
 }
 $yellow200: #fef08a;
 $yellow300: #fde047;

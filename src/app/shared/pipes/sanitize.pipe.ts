@@ -1,6 +1,5 @@
 import type { PipeTransform } from "@angular/core";
-import { Pipe } from "@angular/core";
-import { inject } from "@angular/core";
+import { inject, Pipe } from "@angular/core";
 import type { SafeHtml, SafeResourceUrl, SafeScript, SafeStyle, SafeUrl } from "@angular/platform-browser";
 import { DomSanitizer } from "@angular/platform-browser";
 

@@ -5,10 +5,10 @@ import {
 	isMainModule,
 	writeResponseToNodeResponse,
 } from "@angular/ssr/node";
-import express from "express";
-import { join } from "node:path";
-import * as path from "node:path";
 import * as dotenv from "dotenv";
+import express from "express";
+import * as path from "node:path";
+import { join } from "node:path";
 import { Logger } from "./app/services/logger.service";
 
 const rootDir = process.cwd();

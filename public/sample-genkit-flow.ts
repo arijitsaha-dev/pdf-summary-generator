@@ -5,8 +5,8 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.dev/license
  */
+import { gemini20Flash, googleAI } from "@genkit-ai/googleai";
 import { Chat, genkit, Session } from "genkit/beta";
-import { googleAI, gemini20Flash } from "@genkit-ai/googleai";
 // import { anthropic, claude3Haiku } from "genkitx-anthropic";
 import { parse } from "partial-json";
 import { z } from "zod";

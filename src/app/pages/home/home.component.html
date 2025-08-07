@@ -1,35 +1,41 @@
 <section class="container mx-auto px-4 py-24 sm:px-6 lg:px-8">
-  <app-file-upload (fileSelected)="handleFileSelected($event)" />
-  
-  @if (processingStatus() !== '') {
-    <div class="mt-8 mx-auto max-w-3xl text-center">
-      <div 
-        class="p-4 rounded-lg bg-white shadow-md"
-        [attr.aria-busy]="isProcessing()"
-        [attr.aria-live]="isProcessing() ? 'polite' : 'off'"
-      >
-        <div class="flex items-center justify-center mb-4">
-          @if (isProcessing()) {
-            <svg 
-              class="animate-spin h-8 w-8 text-[var(--primary-color)] mr-2" 
-              xmlns="http://www.w3.org/2000/svg" 
-              fill="none" 
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          }
-          <h3 class="text-lg font-semibold">{{ processingStatus() }}</h3>
-        </div>
-        
-        @if (errorMessage() !== '') {
-          <div class="text-red-500 text-sm mt-2" role="alert">
-            {{ errorMessage() }}
-          </div>
-        }
-      </div>
-    </div>
-  }
+	<app-file-upload (fileSelected)="handleFileSelected($event)" />
+
+	@if (processingStatus() !== "") {
+		<div class="mt-8 mx-auto max-w-3xl text-center">
+			<div class="p-4 rounded-lg bg-white shadow-md" [attr.aria-busy]="isProcessing()" [attr.aria-live]="isProcessing() ? 'polite' : 'off'">
+				<div class="flex items-center justify-center mb-4">
+					@if (isProcessing()) {
+						<svg class="animate-spin h-8 w-8 text-[var(--primary-color)] mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+						</svg>
+					}
+					<h3 class="text-lg font-semibold">{{ processingStatus() }}</h3>
+				</div>
+
+				@if (extractProgress() > 0 && extractProgress() < 100) {
+					<div class="mt-4">
+						<div class="w-full bg-gray-200 rounded-full h-2.5">
+							<div class="bg-[var(--primary-color)] h-2.5 rounded-full" 
+								[style.width.%]="extractProgress()" 
+								[attr.aria-valuenow]="extractProgress()"
+								aria-valuemin="0"
+								aria-valuemax="100"
+								role="progressbar"
+								[attr.aria-label]="'Extracting text from PDF: ' + extractProgress() + '%'">
+							</div>
+						</div>
+						<p class="text-xs text-center mt-1">{{ extractProgress() }}% complete</p>
+					</div>
+				}
+
+				@if (errorMessage() !== "") {
+					<div class="text-red-500 text-sm mt-2" role="alert">
+						{{ errorMessage() }}
+					</div>
+				}
+			</div>
+		</div>
+	}
 </section>
