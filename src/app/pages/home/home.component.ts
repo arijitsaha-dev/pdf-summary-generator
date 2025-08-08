@@ -3,7 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FileUploadComponent } from '../../components/file-upload/file-upload.component';
 import { LoggingService } from '../../services/logging.service';
-import { PdfService } from '../../services/pdf.service';
+// import { PdfService } from '../../services/pdf.service';
 import { SummarizationService } from '../../services/summarization.service';
 
 @Component({
@@ -15,7 +15,7 @@ import { SummarizationService } from '../../services/summarization.service';
 export class HomeComponent {
 	// Service injections
 	private router = inject(Router);
-	private pdfService = inject(PdfService);
+	// private pdfService = inject(PdfService);
 	private loggingService = inject(LoggingService);
 	private summarizationService = inject(SummarizationService);
 
@@ -46,7 +46,7 @@ export class HomeComponent {
 		});
 
 		// Connect to PDF service progress signal
-		this.extractProgress = this.pdfService.progress;
+		// this.extractProgress = this.pdfService.progress;
 
 		// Process the PDF file using our summarization service
 		this.processingStatus.set(`Processing ${file.name}...`);
