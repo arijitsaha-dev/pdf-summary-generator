@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 import {
 	AngularNodeAppEngine,
@@ -11,7 +12,7 @@ import * as path from "node:path";
 import { join } from "node:path";
 import { Logger } from "./app/services/logger.service";
 import multer from "multer";
-import { PDFExtract } from "pdf.js-extract";
+const pdf = require("pdf-parse");
 
 const rootDir = process.cwd();
 // Load environment variables from .env file
@@ -89,23 +90,13 @@ app.post("/api/pdf", upload.single("file") as express.RequestHandler, async (req
 		logger.log(`Processing PDF: ${filename}, size: ${req.file.buffer.length} bytes`);
 
 		// Dynamically import pdf.js with Node.js compatibility settings
-		const pdfExtract = new PDFExtract();
-		pdfExtract
-			.extractBuffer(pdfBuffer, {}, (err, data) => {
-				if (err) {
-					logger.error(err.message);
-					return res.status(500).json({
-						error: "Failed to extract text from PDF",
-						details: err.message,
-						status: "error"
-					});
-				}
-				return res.status(200).json({
-					text: data,
-					filename,
-					status: "success"
-				});
+		pdf(pdfBuffer).then((data: any) => {
+			return res.status(200).json({
+				text: data.text,
+				filename,
+				status: "success",
 			});
+		});
 	} catch (error) {
 		logger.error(`File upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
 		return res.status(500).json({
