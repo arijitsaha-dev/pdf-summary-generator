@@ -1,32 +1,34 @@
-import { Injectable, inject, signal } from "@angular/core";
+import { Injectable, inject, signal, PLATFORM_ID } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable, catchError, of, switchMap, throwError } from "rxjs";
-import { LoggingService } from "./logging.service";
 import { isPlatformBrowser } from "@angular/common";
-import { PLATFORM_ID } from "@angular/core";
+import { Observable, catchError, from, map, of, switchMap, throwError } from "rxjs";
+import { LoggingService } from "./logging.service";
 
-// Import PDF.js only if we're in a browser environment
-// Using more specific types for dynamic imports
-interface PdfJsLib {
-	getDocument: (params: {data: Uint8Array}) => {promise: Promise<PDFDocumentProxy>};
-	version: string;
+// Import core Angular components
+import { ApplicationRef } from "@angular/core";
+
+// Import pdfmake library
+import * as pdfMake from 'pdfmake/build/pdfmake';
+import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+
+// Types for PDF document
+interface PdfDocument {
+	content: any[];
+	info?: Record<string, string>;
+	pageSize?: string | { width: number; height: number };
+	pageOrientation?: 'portrait' | 'landscape';
+	pageMargins?: [number, number, number, number];
+	defaultStyle?: Record<string, any>;
+	styles?: Record<string, any>;
+	images?: Record<string, any>;
 }
-
-interface WorkerOptions {
-	workerSrc: string;
-}
-
-let pdfjsLib: PdfJsLib | undefined;
-let GlobalWorkerOptions: WorkerOptions | undefined;
-
-// We'll import these types for TypeScript compilation
-import type { PDFDocumentProxy, PDFPageProxy } from "pdfjs-dist";
 
 /**
  * Service for handling PDF operations including file validation, upload, and text extraction
+ * Uses pdfmake for PDF processing
  */
 @Injectable({
-	providedIn: "root",
+	providedIn: "root"
 })
 export class PdfService {
 	private http = inject(HttpClient);
@@ -45,77 +47,37 @@ export class PdfService {
 	// Inject platform ID to detect browser environment
 	private platformId = inject(PLATFORM_ID);
 
+	// Inject application ref
+	private appRef = inject(ApplicationRef);
+
 	constructor() {
-		// Initialize PDF.js only in browser environment
+		// Initialize pdfmake with fonts in browser environment only
 		if (isPlatformBrowser(this.platformId)) {
-			this.loadPdfJs();
-		}
-	}
-	
-	/**
-	 * Dynamically import PDF.js only in browser environment
-	 */
-	private async loadPdfJs(): Promise<void> {
-		try {
-			// Dynamically import PDF.js modules
-			const pdfJs = await import('pdfjs-dist');
-			pdfjsLib = pdfJs;
-			
-			// Import GlobalWorkerOptions
-			const { GlobalWorkerOptions: workerOptions } = await import('pdfjs-dist');
-			GlobalWorkerOptions = workerOptions;
-			
-			// Now initialize the worker
-			this.initPdfWorker();
-		} catch (error) {
-			this.loggingService.logAction("pdf_js_load_error", {
-				error: error instanceof Error ? error.message : "Unknown error loading PDF.js"
-			});
-			this.errorMessage.set("Failed to load PDF processing library");
+			// Add virtual file system to pdfmake
+			(pdfMake as any).vfs = pdfFonts.pdfMake.vfs;
 		}
 	}
 
 	/**
-	 * Initialize the PDF.js worker
-	 */
-	private initPdfWorker(): void {
-		// Make sure PDF.js is loaded
-		if (!pdfjsLib || !GlobalWorkerOptions) {
-			this.loggingService.logAction("pdf_worker_init_failed", {
-				reason: "PDF.js not loaded yet"
-			});
-			return;
-		}
-		
-		// Enable fake worker mode which doesn't require an external worker file
-		// This is more reliable in various environments including when network access is limited
-		GlobalWorkerOptions.workerSrc = '';
-		
-		this.loggingService.logAction("pdf_worker_initialized", {
-			version: pdfjsLib.version,
-			mode: "fake_worker"
-		});
-	}
-
-	/**
-	 * Validates if a file is a PDF
+	 * Validates if the file is a PDF
 	 * @param file The file to validate
-	 * @returns True if the file is a valid PDF, false otherwise
+	 * @returns Boolean indicating if the file is a valid PDF
 	 */
 	validatePdfFile(file: File): boolean {
+		// Check if file exists
 		if (!file) {
-			this.errorMessage.set("No file provided");
+			this.errorMessage.set("No file selected");
 			return false;
 		}
 
-		// Check if file is a PDF by MIME type
-		if (file.type !== "application/pdf") {
-			this.errorMessage.set("Only PDF files are allowed");
+		// Check file type
+		if (file.type !== 'application/pdf') {
+			this.errorMessage.set("Invalid file type. Please upload a PDF file.");
 			return false;
 		}
 
-		// Clear any previous error messages
-		this.errorMessage.set("");
+		// Reset error state
+		this.errorMessage.set(null);
 		return true;
 	}
 
@@ -170,9 +132,9 @@ export class PdfService {
 	}
 
 	/**
-	 * Extracts text from a PDF file using PDF.js
+	 * Extracts text from a PDF file using pdfmake and pdf.js
 	 * @param file The PDF file to extract text from
-	 * @returns An Observable with the extracted text or error
+	 * @returns Observable with the extracted text
 	 */
 	extractTextFromPdf(file: File): Observable<string> {
 		if (!this.validatePdfFile(file)) {
@@ -181,82 +143,92 @@ export class PdfService {
 			return throwError(() => new Error(errorMessage));
 		}
 
-		// Check if we're in the browser - PDF.js requires browser APIs
+		// Check if we're in the browser - PDF processing requires browser APIs
 		if (!isPlatformBrowser(this.platformId)) {
-			const errorMessage = "PDF extraction is only available in browser environment";
-			this.errorMessage.set(errorMessage);
-			return throwError(() => new Error(errorMessage));
-		}
-
-		// Check if PDF.js is loaded
-		if (!pdfjsLib) {
-			const errorMessage = "PDF.js library not loaded. Please try again.";
+			const errorMessage = "PDF extraction is only available in the browser environment.";
 			this.errorMessage.set(errorMessage);
 			return throwError(() => new Error(errorMessage));
 		}
 
 		this.isProcessing.set(true);
-		this.errorMessage.set(null);
 		this.progress.set(0);
+		this.errorMessage.set(null);
 
-		const fileId = `pdf-${Date.now()}`;
+		// Generate a unique ID for this extraction task
+		const fileId = `pdf_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 
-		this.loggingService.logAction("extract_text_start", {
-			fileId,
-			fileName: file.name,
-			fileSize: file.size
-		});
+		// Import pdfjs dynamically since pdfmake is built on pdf.js
+		return new Observable<string>(observer => {
+			try {
+				const fileReader = new FileReader();
 
-		// Use PDF.js to extract text
-		return new Observable<string>((observer) => {
-			const reader = new FileReader();
-			
-			reader.onload = async (e: ProgressEvent<FileReader>): Promise<void> => {
-				try {
-					if (!e.target?.result) {
-						throw new Error("Failed to read PDF file");
+				fileReader.onload = () => {
+					try {
+						// The file content as ArrayBuffer
+						const arrayBuffer = fileReader.result as ArrayBuffer;
+
+						// Log the start of extraction
+						this.loggingService.logAction("extract_text_start", {
+							fileId,
+							fileName: file.name,
+							fileSize: file.size
+						});
+
+						// Use pdfMake to parse the document
+						// Since pdfmake doesn't have a direct text extraction API, we need to use a workaround
+						// We'll use pdf.js which pdfmake uses internally
+
+						// We can use pdfMake createPdf to generate a Blob and then use pdf.js to extract text
+						const uint8Array = new Uint8Array(arrayBuffer);
+
+						// Use a third-party library approach with pdf.js for text extraction
+						// Load pdf.js dynamically
+						this.loadPdfJS().then(pdfJS => {
+							// Use pdf.js to load the document
+							pdfJS.getDocument(uint8Array).promise.then(pdfDocument => {
+								this.loggingService.logAction("extract_text_pdf_loaded", {
+									fileId,
+									numPages: pdfDocument.numPages
+								});
+
+								// Extract text from all pages
+								this.extractTextFromAllPages(pdfDocument, fileId).then(allText => {
+									this.isProcessing.set(false);
+									this.progress.set(100);
+
+									this.loggingService.logAction("extract_text_complete", {
+										fileId,
+										characterCount: allText.length
+									});
+
+									// Complete the observable with the extracted text
+									observer.next(allText);
+									observer.complete();
+								}).catch(error => {
+									this.handleExtractionError(error, fileId, observer);
+								});
+							}).catch(error => {
+								this.handleExtractionError(error, fileId, observer);
+							});
+						}).catch(error => {
+							this.handleExtractionError(error, fileId, observer);
+						});
+					} catch (error) {
+						this.handleExtractionError(error, fileId, observer);
 					}
-					
-					if (!pdfjsLib) {
-						throw new Error("PDF.js library not available");
-					}
-					
-					// Load the PDF document
-					const typedArray = new Uint8Array(e.target.result as ArrayBuffer);
-					const loadingTask = pdfjsLib.getDocument({ data: typedArray });
-					
-					// Get the PDF document
-					const pdf = await loadingTask.promise;
-					
-					this.loggingService.logAction("pdf_document_loaded", {
-						fileId,
-						numPages: pdf.numPages
-					});
-					
-					const allText = await this.extractTextFromAllPages(pdf, fileId);
-					this.isProcessing.set(false);
-					this.progress.set(100);
-					
-					this.loggingService.logAction("extract_text_complete", {
-						fileId,
-						textLength: allText.length,
-						numPages: pdf.numPages
-					});
-					
-					observer.next(allText);
-					observer.complete();
-				} catch (error) {
+				};
+
+				fileReader.onerror = (error) => {
 					this.handleExtractionError(error, fileId, observer);
-				}
-			};
-			
-			reader.onerror = (error: ProgressEvent<FileReader>): void => {
+				};
+
+				// Start reading the file
+				fileReader.readAsArrayBuffer(file);
+
+			} catch (error) {
 				this.handleExtractionError(error, fileId, observer);
-			};
-			
-			// Read the file as ArrayBuffer
-			reader.readAsArrayBuffer(file);
-		}).pipe(
+			}
+		});
 			catchError((error) => {
 				this.isProcessing.set(false);
 				this.progress.set(0);
@@ -272,28 +244,57 @@ export class PdfService {
 			}),
 		);
 	}
-	
+
+	/**
+	 * Handles a PDF document after it's been loaded by the PdfViewerComponent
+	 * @param pdf The loaded PDF document
+	 * @param fileId Identifier for the file being processed
+	 * @param pdfComponentRef Reference to the PDF component to clean up
+		try {
+			// Extract text from all pages
+			const allText = await this.extractTextFromAllPages(pdf, fileId);
+
+			// Clean up the component
+			pdfComponentRef.destroy();
+
+			this.isProcessing.set(false);
+			this.progress.set(100);
+
+			this.loggingService.logAction("extract_text_complete", {
+				fileId,
+				textLength: allText.length,
+				numPages: pdf.numPages
+			});
+
+			observer.next(allText);
+			observer.complete();
+		} catch (error) {
+			pdfComponentRef.destroy();
+			this.handleExtractionError(error, fileId, observer);
+		}
+	}
+
 	/**
 	 * Extract text from all pages in a PDF document
-	 * @param pdf PDF document
+	 * @param pdf PDF document from ng2-pdf-viewer
 	 * @param fileId Identifier for the file being processed
 	 * @returns Promise with the combined text from all pages
 	 */
 	private async extractTextFromAllPages(pdf: PDFDocumentProxy, fileId: string): Promise<string> {
 		const numPages = pdf.numPages;
 		let textContent = "";
-		
+
 		for (let i = 1; i <= numPages; i++) {
 			try {
 				// Update progress
 				this.progress.set(Math.floor((i - 1) / numPages * 100));
-				
+
 				const page = await pdf.getPage(i);
 				const pageText = await this.extractTextFromPage(page);
-				
+
 				// Add page number and text
 				textContent += `Page ${i}\n${pageText}\n\n`;
-				
+
 				this.loggingService.logAction("page_text_extracted", {
 					fileId,
 					page: i,
@@ -305,34 +306,34 @@ export class PdfService {
 					page: i,
 					error: error instanceof Error ? error.message : "Unknown error"
 				});
-				
+
 				// Continue with next page even if this one fails
 				textContent += `Page ${i}\n[Error extracting text from this page]\n\n`;
 			}
 		}
-		
+
 		return textContent;
 	}
-	
+
 	/**
-	 * Extract text from a single PDF page
-	 * @param page PDF page
+	 * Extract text from a single PDF page using ng2-pdf-viewer's PDFPageProxy
+	 * @param page PDF page from ng2-pdf-viewer
 	 * @returns Promise with the extracted text
 	 */
 	private async extractTextFromPage(page: PDFPageProxy): Promise<string> {
 		const textContent = await page.getTextContent();
 		let pageText = "";
-		
+
 		// Combine text items into a single string
 		for (const item of textContent.items) {
 			if ('str' in item) {
 				pageText += item.str + " ";
 			}
 		}
-		
+
 		return pageText;
 	}
-	
+
 	/**
 	 * Handle errors during PDF text extraction
 	 * @param error The error object
@@ -344,12 +345,12 @@ export class PdfService {
 		this.progress.set(0);
 		const errorMessage = error instanceof Error ? error.message : "Failed to extract text from PDF.";
 		this.errorMessage.set(errorMessage);
-		
+
 		this.loggingService.logAction("extract_text_error", {
 			fileId,
 			error: errorMessage
 		});
-		
+
 		observer.error(new Error(errorMessage));
 	}
 }

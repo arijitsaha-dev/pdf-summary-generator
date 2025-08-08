@@ -6,14 +6,13 @@ import { LoggingService } from '../../services/logging.service';
 
 @Component({
 	selector: "app-summary",
-
 	imports: [CommonModule],
 	templateUrl: "./summary.component.html",
 	styleUrl: "./summary.component.scss",
 })
 export class SummaryComponent implements OnInit {
 	// State signals
-	pdfText = signal<string>("");
+	summaryBullets = signal<string[]>([]);
 	pdfFileName = signal<string>("");
 	isLoading = signal<boolean>(true);
 	error = signal<string>("");
@@ -23,17 +22,17 @@ export class SummaryComponent implements OnInit {
 	private loggingService = inject(LoggingService);
 
 	ngOnInit(): void {
-		// Attempt to load PDF text from session storage
+		// Attempt to load summary from session storage
 		try {
-			const text = sessionStorage.getItem("pdfText");
+			const summaryJson = sessionStorage.getItem("pdfSummary");
 			const fileName = sessionStorage.getItem("pdfFileName");
 
-			if (!text || !fileName) {
+			if (!summaryJson || !fileName) {
 				// No data found, navigate back to home
-				this.error.set("No PDF data found. Please upload a PDF file.");
+				this.error.set("No summary data found. Please upload a PDF file.");
 
 				this.loggingService.logAction("summary_error", {
-					error: "No PDF data found in session storage",
+					error: "No summary data found in session storage",
 					timestamp: new Date().toISOString(),
 				});
 
@@ -43,14 +42,21 @@ export class SummaryComponent implements OnInit {
 				return;
 			}
 
+			// Parse the summary bullets from JSON
+			const bullets = JSON.parse(summaryJson) as string[];
+
+			if (!Array.isArray(bullets)) {
+				throw new Error("Invalid summary format");
+			}
+
 			// Data found, show it
-			this.pdfText.set(text);
+			this.summaryBullets.set(bullets);
 			this.pdfFileName.set(fileName);
 			this.isLoading.set(false);
 
 			this.loggingService.logAction("summary_loaded", {
 				filename: fileName,
-				textLength: text.length,
+				bulletCount: bullets.length,
 				timestamp: new Date().toISOString(),
 			});
 		} catch (error) {

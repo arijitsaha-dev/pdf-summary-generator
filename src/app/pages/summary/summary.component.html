@@ -25,7 +25,11 @@
 				</div>
 			} @else {
 				<div class="prose max-w-none">
-					<p>{{ pdfText() }}</p>
+					<ul class="list-disc pl-6 space-y-2">
+						@for (bullet of summaryBullets(); track $index) {
+							<li class="text-[var(--text-primary)]">{{ bullet }}</li>
+						}
+					</ul>
 				</div>
 			}
 		</div>

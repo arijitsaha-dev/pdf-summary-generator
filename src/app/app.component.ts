@@ -7,6 +7,7 @@ import { HeaderComponent } from "./base/header/header.component";
 import { MainComponent } from "./base/main/main.component";
 import { NotifyConnectionComponent } from "./base/notify-connection/notify-connection.component";
 import { DataShareService } from "./services/global/data-share.service";
+import { PdfViewerModule } from "ng2-pdf-viewer";
 
 @Component({
 	selector: "app-root",
