@@ -52,25 +52,26 @@ export class HomeComponent {
 		this.processingStatus.set(`Processing ${file.name}...`);
 
 		// Use the new summarization service which handles both extraction and summarization
-		this.summarizationService.processPdf(file).subscribe({
-			next: (summaryBullets) => {
-				// Store the summary in session storage to use on the summary page
-				this.storeSummary(summaryBullets, file.name);
-				this.isProcessing.set(false);
-				this.processingStatus.set("Processing complete");
+		this.summarizationService.processPdf(file)
+		// .subscribe({
+		// 	next: (summaryBullets) => {
+		// 		// Store the summary in session storage to use on the summary page
+		// 		this.storeSummary(summaryBullets, file.name);
+		// 		this.isProcessing.set(false);
+		// 		this.processingStatus.set("Processing complete");
 
-				// Log successful processing
-				this.loggingService.logAction("summarization_complete", {
-					filename: file.name,
-					summaryBulletCount: summaryBullets.length,
-					timestamp: new Date().toISOString(),
-				});
+		// 		// Log successful processing
+		// 		this.loggingService.logAction("summarization_complete", {
+		// 			filename: file.name,
+		// 			summaryBulletCount: summaryBullets.length,
+		// 			timestamp: new Date().toISOString(),
+		// 		});
 
-				// Navigate to the summary page
-				this.router.navigate(["/summary"]);
-			},
-			error: (error) => this.handleError(error, file.name),
-		});
+		// 		// Navigate to the summary page
+		// 		this.router.navigate(["/summary"]);
+		// 	},
+		// 	error: (error) => this.handleError(error, file.name),
+		// });
 	}
 
 	/**

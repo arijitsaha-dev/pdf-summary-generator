@@ -3,6 +3,7 @@
 		"baseUrl": "./",
 		"outDir": "./dist/out-tsc",
 		"strict": true,
+		"allowJs": true,
 		"noImplicitOverride": true,
 		"noPropertyAccessFromIndexSignature": true,
 		"noImplicitReturns": true,

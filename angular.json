@@ -33,6 +33,7 @@
 				"build": {
 					"builder": "@angular/build:application",
 					"options": {
+						"externalDependencies": ["canvas"],
 						"outputPath": "dist/pdf-summary-generator",
 						"index": "src/index.html",
 						"browser": "src/main.ts",
