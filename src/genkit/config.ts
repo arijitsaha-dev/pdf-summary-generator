@@ -20,8 +20,18 @@ export interface GenKitConfig {
 }
 
 /**
+ * Direct config access that doesn't rely on Angular DI - for server usage
+ * Safe to use in non-Angular contexts like Express routes
+ */
+export const config: GenKitConfig = {
+  anthropicApiKey: process.env['ANTHROPIC_API_KEY'] || 'placeholder-for-ssr',
+  defaultModel: 'claude-3-haiku-20240307'
+};
+
+/**
  * Load and verify API keys for GenKit integration
  * Ensures API keys are properly set before making API calls
+ * NOTE: This should only be used in Angular components/services
  *
  * @returns Configuration object with API keys and settings
  * @throws Error if required environment variables are missing
@@ -54,7 +64,7 @@ export function loadGenKitConfig(): GenKitConfig {
 
   return {
     anthropicApiKey,
-    defaultModel: 'claude-3-haiku-20240307' // Default to Claude 3 Sonnet
+    defaultModel: 'claude-3-haiku-20240307' // Default to Claude 3 Haiku
   };
 }
 

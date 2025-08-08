@@ -23,6 +23,11 @@ const app = express();
 const logger = new Logger();
 const angularApp = new AngularNodeAppEngine();
 
+// For parsing application/json
+app.use(express.json());
+// For parsing application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
+
 /**
  * Serve static files from /browser
  */
@@ -40,6 +45,35 @@ app.use(
 app.get("/api/health", (req, res) => {
 	logger.log("Health check endpoint hit");
 	res.status(200).json({ status: "ok", timestamp: new Date().toLocaleString() });
+});
+
+/**
+ * PDF summary endpoint - generates a summary of PDF text
+ */
+app.post("/api/summary", async (req, res) => {
+	try {
+		// Import the summary utility function
+		const { summarizePdfText } = await import('./server/summary-util');
+		// Generate summary using our non-Angular utility
+		const result = await summarizePdfText({
+			pdfText: req.body.pdfText,
+			filename: req.body.filename,
+		});
+
+		// Return the summary result
+		res.status(200).json({
+			status: "ok",
+			result,
+			timestamp: new Date().toLocaleString()
+		});
+	} catch (error) {
+		logger.error(`Error in /api/summary endpoint: ${error instanceof Error ? error.message : String(error)}`);
+		res.status(500).json({
+			status: "error",
+			message: "Failed to generate summary",
+			timestamp: new Date().toLocaleString()
+		});
+	}
 });
 
 /**

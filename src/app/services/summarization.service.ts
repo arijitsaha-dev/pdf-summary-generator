@@ -111,7 +111,6 @@ export class SummarizationService {
 				if (typeof res1 == "object" && res1.hasOwnProperty("text")) {
 					this.aiService.generateSummary(res1.text as string, file.name).subscribe(
 						(res2) => {
-							console.log("res2========>>>>>>>>>>>", res2);
 							this.summaryBullets.set(res2);
 						},
 						(error) => {

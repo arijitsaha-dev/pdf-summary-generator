@@ -116,7 +116,6 @@ export class AiService {
 			.pipe(takeUntil(this._destroy$))
 			.subscribe(
 				(response: any) => {
-					console.log("response========>>>>>>>>>>>", response);
 					// Validate response: any
 					if (!response || !Array.isArray(response.summary)) {
 						throw new Error("Invalid response format from Claude API");

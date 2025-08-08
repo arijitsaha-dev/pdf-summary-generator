@@ -1,6 +1,7 @@
 import type { OnDestroy } from "@angular/core";
 import { Injectable, inject } from "@angular/core";
-import { Subject, takeUntil } from "rxjs";
+import type { Observable} from "rxjs";
+import { Subject, takeUntil, map, catchError, of } from "rxjs";
 import { HttpClientReqService } from "./global/http-client-req.service";
 // import { LoggerService } from "./global/logger.service";
 
@@ -13,51 +14,27 @@ import { HttpClientReqService } from "./global/http-client-req.service";
 })
 export class PdfService implements OnDestroy {
 	private httpReqService = inject(HttpClientReqService);
-	// private loggingService = inject(LoggerService);
 	private _destroy$: Subject<boolean> = new Subject<boolean>();
-
-	// 	// Signal to track processing state
-	// 	isProcessing = signal(false);
-
-	// 	// Signal to track error state
-	// 	errorMessage = signal<string | null>(null);
-
-	// 	// Signal to track extraction progress
-	// 	progress = signal(0);
-
-	// 	private loggingService = inject(LoggingService);
-
-	// 	// Inject platform ID to detect browser environment
-	// 	private platformId = inject(PLATFORM_ID);
-
-	// 	// Inject application ref
-	// 	private appRef = inject(ApplicationRef);
 
 	/**
 	 * Extracts text from a PDF file by sending it to the server API endpoint
 	 * @param file The PDF file to extract text from
 	 * @returns Observable with the extracted text response
 	 */
-	extractTextFromPdf(file: File): any {
+	extractTextFromPdf(file: File): Observable<any> {
 		// Create a FormData object to send the file as multipart/form-data
 		const formData = new FormData();
 		// Add the file with field name 'file' (matching what server expects)
 		formData.append("file", file, file.name);
 
 		// Send the FormData to the API endpoint
-		this.httpReqService
+		return this.httpReqService
 			.postRequest("/api/pdf", formData)
-			.pipe(takeUntil(this._destroy$))
-			.subscribe(
-				(response) => {
-					// this.loggingService.info("PDF extracted successfully", response);
-					return response;
-				},
-				(error) => {
-					// this.loggingService.error("PDF extraction failed", error);
-					return error;
-				},
-			);
+			.pipe(
+				takeUntil(this._destroy$),
+				map((res: any) => res),
+				catchError((error: any) => of(error)));
+
 	}
 
 	ngOnDestroy(): void {
