@@ -1,9 +1,10 @@
+/* eslint-disable no-prototype-builtins */
 import { Injectable, inject, signal } from "@angular/core";
 // import { Observable, catchError, finalize, map, of, switchMap, throwError } from 'rxjs';
 import { PdfService } from "./pdf.service";
-import type { Observable} from "rxjs";
-import { of } from "rxjs";
 import { LoggingService } from "./logging.service";
+import { AiService } from "./ai.service";
+import { Subject } from "rxjs";
 
 /**
  * Service to handle the end-to-end PDF summarization process
@@ -17,6 +18,8 @@ import { LoggingService } from "./logging.service";
 export class SummarizationService {
 	private readonly pdfService = inject(PdfService);
 	private readonly loggingService = inject(LoggingService);
+	private readonly aiService = inject(AiService);
+	private _destroy$: Subject<boolean> = new Subject<boolean>();
 
 	// Maximum file size in bytes (10MB)
 	private readonly MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -52,7 +55,6 @@ export class SummarizationService {
 				fileSize: file.size,
 				maxSize: this.MAX_FILE_SIZE,
 			});
-
 			return false;
 		}
 
@@ -66,10 +68,8 @@ export class SummarizationService {
 				filename: file.name,
 				fileType: file.type,
 			});
-
 			return false;
 		}
-
 		return true;
 	}
 
@@ -84,7 +84,7 @@ export class SummarizationService {
 	 * @param file - The PDF file to process
 	 * @returns Observable with array of summary bullet points
 	 */
-	processPdf(file: File): Observable<any> {
+	async processPdf(file: File): Promise<any> {
 		// Reset state and validate file
 		this.isProcessing.set(true);
 		this.error.set(null);
@@ -93,7 +93,7 @@ export class SummarizationService {
 
 		if (!this.validateFile(file)) {
 			this.isProcessing.set(false);
-			return of([]);
+			return false;
 		}
 
 		const fileId = `pdf-${Date.now()}`;
@@ -106,7 +106,37 @@ export class SummarizationService {
 		});
 
 		// Track the number of retries
-		const processPDFText = this.pdfService.extractTextFromPdf(file);
-		return processPDFText;
+		this.pdfService.extractTextFromPdf(file).subscribe(
+			(res1) => {
+				if (typeof res1 == "object" && res1.hasOwnProperty("text")) {
+					this.aiService.generateSummary(res1.text as string, file.name).subscribe(
+						(res2) => {
+							console.log("res2========>>>>>>>>>>>", res2);
+							this.summaryBullets.set(res2);
+						},
+						(error) => {
+							this.error.set(error.message as string);
+						},
+						() => {
+							this.isProcessing.set(false);
+							return true;
+						},
+					);
+				}
+			},
+			(error) => {
+				this.error.set(error.message as string);
+			},
+			() => {
+				this.isProcessing.set(false);
+			},
+		);
+		this.loggingService.logAction("pdf_processing_end", {
+			fileId,
+			filename: file.name,
+			fileSize: file.size,
+			fileType: file.type,
+		});
+		return true;
 	}
 }

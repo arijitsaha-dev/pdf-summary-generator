@@ -70,7 +70,7 @@ export class ErrorHandlerService {
         message: 'An unknown error occurred',
         category: ErrorCategory.UNKNOWN,
         retryable: false,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toLocaleString(),
         originalError: error,
         context
       };
@@ -104,7 +104,7 @@ export class ErrorHandlerService {
         message: 'Network connection error',
         category: ErrorCategory.NETWORK,
         retryable: true,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toLocaleString(),
         originalError: error,
         context
       };
@@ -118,7 +118,7 @@ export class ErrorHandlerService {
         message: 'Authentication error',
         category: ErrorCategory.AUTHENTICATION,
         retryable: false,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toLocaleString(),
         originalError: error,
         context
       };
@@ -129,7 +129,7 @@ export class ErrorHandlerService {
       message: error.message || 'An application error occurred',
       category: ErrorCategory.CLIENT,
       retryable: false,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toLocaleString(),
       originalError: error,
       context
     };
@@ -186,7 +186,7 @@ export class ErrorHandlerService {
       category,
       statusCode,
       retryable,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toLocaleString(),
       originalError: error,
       context
     };

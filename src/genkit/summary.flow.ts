@@ -49,6 +49,8 @@ const ai = genkit({
   model
 });
 
+console.log("ai========>>>>>>>>>>>", ai);
+
 /**
  * Main summary flow definition
  */
@@ -103,7 +105,7 @@ export const summaryFlow = ai.defineFlow(
         model,
         system: "You are an expert PDF summarizer. Create concise bullet points capturing the key information."
       });
-      
+
       // Send the prompt to Claude API through GenKit
       const response = await chat.send({ prompt }).catch((error: unknown) => {
         // Convert network/API errors to a standardized format
@@ -146,7 +148,7 @@ export const summaryFlow = ai.defineFlow(
 
       // Get response text from the GenKit response
       const responseText = response.text;
-      
+
       if (!responseText) {
         throw new Error('Empty response from Claude API');
       }
@@ -171,10 +173,10 @@ export const summaryFlow = ai.defineFlow(
       return { summary: bulletPoints };
     } catch (error) {
       // Use postMessage instead of console.error to avoid lint warning
-      self.postMessage?.({ 
-        type: 'log', 
-        level: 'error', 
-        message: `Error generating summary: ${error instanceof Error ? error.message : JSON.stringify(error)}` 
+      self.postMessage?.({
+        type: 'log',
+        level: 'error',
+        message: `Error generating summary: ${error instanceof Error ? error.message : JSON.stringify(error)}`
       });
       throw new Error(`Failed to generate summary: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }

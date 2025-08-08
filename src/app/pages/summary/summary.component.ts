@@ -22,52 +22,14 @@ export class SummaryComponent implements OnInit {
 	private loggingService = inject(LoggingService);
 
 	ngOnInit(): void {
-		// Attempt to load summary from session storage
-		try {
-			const summaryJson = sessionStorage.getItem("pdfSummary");
-			const fileName = sessionStorage.getItem("pdfFileName");
-
-			if (!summaryJson || !fileName) {
-				// No data found, navigate back to home
-				this.error.set("No summary data found. Please upload a PDF file.");
-
-				this.loggingService.logAction("summary_error", {
-					error: "No summary data found in session storage",
-					timestamp: new Date().toISOString(),
-				});
-
-				setTimeout(() => {
-					this.router.navigate(["/home"]);
-				}, 2000);
-				return;
-			}
-
-			// Parse the summary bullets from JSON
-			const bullets = JSON.parse(summaryJson) as string[];
-
-			if (!Array.isArray(bullets)) {
-				throw new Error("Invalid summary format");
-			}
-
-			// Data found, show it
-			this.summaryBullets.set(bullets);
-			this.pdfFileName.set(fileName);
-			this.isLoading.set(false);
-
-			this.loggingService.logAction("summary_loaded", {
-				filename: fileName,
-				bulletCount: bullets.length,
-				timestamp: new Date().toISOString(),
-			});
-		} catch (error) {
-			this.error.set("Failed to load PDF data.");
-			this.isLoading.set(false);
-
-			this.loggingService.logAction("summary_error", {
-				error: error instanceof Error ? error.message : "Unknown error loading PDF data",
-				timestamp: new Date().toISOString(),
-			});
-		}
+		this.isLoading.set(false);
+		this.loggingService.logAction("summary_page_viewed", {
+			summaryBullets: this.summaryBullets(),
+			fileName: this.pdfFileName(),
+			isLoading: this.isLoading(),
+			error: this.error(),
+			timestamp: new Date().toLocaleString(),
+		});
 	}
 
 	/**
@@ -76,7 +38,7 @@ export class SummaryComponent implements OnInit {
 	goBack(): void {
 		this.loggingService.logAction("navigate_to_upload", {
 			fromPage: "summary",
-			timestamp: new Date().toISOString(),
+			timestamp: new Date().toLocaleString(),
 		});
 
 		this.router.navigate(["/home"]);
