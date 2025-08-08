@@ -4,7 +4,7 @@ import { Injectable, inject, signal } from "@angular/core";
 import { PdfService } from "./pdf.service";
 import { LoggingService } from "./logging.service";
 import { AiService } from "./ai.service";
-import { Subject } from "rxjs";
+import { Subject, takeUntil } from "rxjs";
 
 /**
  * Service to handle the end-to-end PDF summarization process
@@ -106,30 +106,36 @@ export class SummarizationService {
 		});
 
 		// Track the number of retries
-		this.pdfService.extractTextFromPdf(file).subscribe(
-			(res1) => {
-				if (typeof res1 == "object" && res1.hasOwnProperty("text")) {
-					this.aiService.generateSummary(res1.text as string, file.name).subscribe(
-						(res2) => {
-							this.summaryBullets.set(res2);
-						},
-						(error) => {
-							this.error.set(error.message as string);
-						},
-						() => {
-							this.isProcessing.set(false);
-							return true;
-						},
-					);
-				}
-			},
-			(error) => {
-				this.error.set(error.message as string);
-			},
-			() => {
-				this.isProcessing.set(false);
-			},
-		);
+		this.pdfService
+			.extractTextFromPdf(file)
+			.pipe(takeUntil(this._destroy$))
+			.subscribe(
+				(res1) => {
+					if (typeof res1 == "object" && res1.hasOwnProperty("text")) {
+						this.aiService
+							.generateSummary(res1.text as string, file.name)
+							.pipe(takeUntil(this._destroy$))
+							.subscribe(
+								(res2) => {
+									this.summaryBullets.set(res2.result.summary as string[]);
+								},
+								(error) => {
+									this.error.set(error.message as string);
+								},
+								() => {
+									this.isProcessing.set(false);
+									return true;
+								},
+							);
+					}
+				},
+				(error) => {
+					this.error.set(error.message as string);
+				},
+				() => {
+					this.isProcessing.set(false);
+				},
+			);
 		this.loggingService.logAction("pdf_processing_end", {
 			fileId,
 			filename: file.name,
