@@ -1,10 +1,11 @@
 /* eslint-disable no-prototype-builtins */
 import { Injectable, inject, signal } from "@angular/core";
-// import { Observable, catchError, finalize, map, of, switchMap, throwError } from 'rxjs';
+import { type OnDestroy } from "@angular/core";
 import { PdfService } from "./pdf.service";
 import { LoggingService } from "./logging.service";
 import { AiService } from "./ai.service";
-import { Subject, takeUntil } from "rxjs";
+import { type StreamingSummaryState } from "./ai.service";
+import { Subject, firstValueFrom, takeUntil } from "rxjs";
 
 /**
  * Service to handle the end-to-end PDF summarization process
@@ -15,11 +16,11 @@ import { Subject, takeUntil } from "rxjs";
 @Injectable({
 	providedIn: "root",
 })
-export class SummarizationService {
+export class SummarizationService implements OnDestroy {
 	private readonly pdfService = inject(PdfService);
 	private readonly loggingService = inject(LoggingService);
 	private readonly aiService = inject(AiService);
-	private _destroy$: Subject<boolean> = new Subject<boolean>();
+	private readonly destroy$ = new Subject<boolean>();
 
 	// Maximum file size in bytes (10MB)
 	private readonly MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -29,6 +30,13 @@ export class SummarizationService {
 	readonly error = signal<string | null>(null);
 	readonly progress = signal<number>(0);
 	readonly summaryBullets = signal<string[]>([]);
+	readonly currentFileName = signal<string>("");
+	
+	// Streaming summary state signals
+	readonly isStreamingComplete = signal<boolean>(false);
+	readonly currentBulletIndex = signal<number>(-1);
+	readonly currentBulletText = signal<string>("");
+	readonly streamedBullets = signal<string[]>([]);
 
 	/**
 	 * Validate file before processing
@@ -108,13 +116,13 @@ export class SummarizationService {
 		// Track the number of retries
 		this.pdfService
 			.extractTextFromPdf(file)
-			.pipe(takeUntil(this._destroy$))
+			.pipe(takeUntil(this.destroy$))
 			.subscribe(
 				(res1) => {
 					if (typeof res1 == "object" && res1.hasOwnProperty("text")) {
 						this.aiService
 							.generateSummary(res1.text as string, file.name)
-							.pipe(takeUntil(this._destroy$))
+							.pipe(takeUntil(this.destroy$))
 							.subscribe(
 								(res2) => {
 									this.summaryBullets.set(res2.result.summary as string[]);
@@ -143,5 +151,112 @@ export class SummarizationService {
 			fileType: file.type,
 		});
 		return true;
+	}
+
+	/**
+	 * Process a PDF file to generate a streaming summary
+	 *
+	 * This method handles the complete workflow with progressive streaming output:
+	 * 1. Extract text from PDF
+	 * 2. Generate streaming summary from the text
+	 * 3. Update UI in real-time as bullet points arrive
+	 *
+	 * @param file - The PDF file to process
+	 * @returns Promise indicating processing success
+	 */
+	async processStreamingPdf(file: File): Promise<boolean> {
+		// Reset state and validate file
+		this.isProcessing.set(true);
+		this.error.set(null);
+		this.progress.set(0);
+		this.resetStreamingState();
+		this.currentFileName.set(file.name);
+
+		if (!this.validateFile(file)) {
+			this.isProcessing.set(false);
+			return false;
+		}
+
+		const fileId = `pdf-streaming-${Date.now()}`;
+
+		this.loggingService.logAction("pdf_streaming_processing_start", {
+			fileId,
+			filename: file.name,
+			fileSize: file.size,
+		});
+
+		try {
+			// Extract text from PDF
+			const textResult = await firstValueFrom(this.pdfService.extractTextFromPdf(file));
+			
+			if (typeof textResult === "object" && textResult.hasOwnProperty("text")) {
+				// Generate streaming summary
+				this.aiService
+					.generateStreamingSummary(textResult.text as string, file.name)
+					.pipe(takeUntil(this.destroy$))
+					.subscribe(
+						// Update streaming state on each emission
+						(streamState: StreamingSummaryState) => {
+							this.updateStreamingState(streamState);
+						},
+						// Handle errors
+						(error) => {
+							this.error.set(error.message as string);
+							this.isProcessing.set(false);
+						},
+						// Complete streaming
+						() => {
+							this.isStreamingComplete.set(true);
+							this.isProcessing.set(false);
+							this.loggingService.logAction("pdf_streaming_processing_complete", { fileId });
+						}
+					);
+			} else {
+				throw new Error("Failed to extract text from PDF");
+			}
+
+			return true;
+		} catch (error) {
+			this.error.set(error instanceof Error ? error.message : "Unknown error");
+			this.isProcessing.set(false);
+			this.loggingService.logAction("pdf_streaming_processing_error", {
+				fileId,
+				error: error instanceof Error ? error.message : "Unknown error"
+			});
+			return false;
+		}
+	}
+
+	/**
+	 * Reset all streaming state signals to initial values
+	 */
+	private resetStreamingState(): void {
+		this.isStreamingComplete.set(false);
+		this.currentBulletIndex.set(-1);
+		this.currentBulletText.set("");
+		this.streamedBullets.set([]);
+	}
+	
+	/**
+	 * Update streaming state signals based on current streaming state
+	 */
+	private updateStreamingState(state: StreamingSummaryState): void {
+		this.isStreamingComplete.set(state.isComplete);
+		this.currentBulletIndex.set(state.currentBulletIndex);
+		this.currentBulletText.set(state.currentBulletText);
+		this.streamedBullets.set([...state.bulletPoints]);
+		
+		// Also update the normal summary bullets when complete
+		if (state.isComplete) {
+			this.summaryBullets.set([...state.bulletPoints]);
+		}
+	}
+	
+	/**
+	 * Cleanup resources when service is destroyed
+	 */
+	ngOnDestroy(): void {
+		this.destroy$.next(true);
+		this.destroy$.complete();
 	}
 }

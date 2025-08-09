@@ -46,12 +46,31 @@ export class HomeComponent {
 		// Process the PDF file using our summarization service
 		this.processingStatus.set(`Processing ${file.name}...`);
 
-		// Use the new summarization service which handles both extraction and summarization
-		const data = await this.summarizationService.processPdf(file);
-		if (data) {
-			this.processingStatus.set(`Processing Complete`);
+		// Use streaming summary generation for a more dynamic user experience
+		try {
+			// Start the streaming summary process
+			const success = await this.summarizationService.processStreamingPdf(file);
+			
+			if (success) {
+				this.processingStatus.set(`Processing Complete`);
+				this.isProcessing.set(false);
+				
+				// Navigate to summary page with streaming mode indication
+				this.router.navigate(['/summary'], { 
+					queryParams: { mode: 'streaming' } 
+				});
+			} else {
+				throw new Error("Summary generation failed");
+			}
+		} catch (error) {
+			this.errorMessage.set(error instanceof Error ? error.message : "An unknown error occurred");
 			this.isProcessing.set(false);
-			this.router.navigate(["/summary"]);
+			this.processingStatus.set(`Processing failed`);
+			
+			this.loggingService.logAction("streaming_summary_error", {
+				filename: file.name,
+				error: error instanceof Error ? error.message : "Unknown error"
+			});
 		}
 	}
 }
