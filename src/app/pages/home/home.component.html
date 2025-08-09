@@ -17,14 +17,7 @@
 				@if (extractProgress() > 0 && extractProgress() < 100) {
 					<div class="mt-4">
 						<div class="w-full bg-gray-200 rounded-full h-2.5">
-							<div class="bg-[var(--primary-color)] h-2.5 rounded-full" 
-								[style.width.%]="extractProgress()" 
-								[attr.aria-valuenow]="extractProgress()"
-								aria-valuemin="0"
-								aria-valuemax="100"
-								role="progressbar"
-								[attr.aria-label]="'Extracting text from PDF: ' + extractProgress() + '%'">
-							</div>
+							<div class="bg-[var(--primary-color)] h-2.5 rounded-full" [style.width.%]="extractProgress()" [attr.aria-valuenow]="extractProgress()" aria-valuemin="0" aria-valuemax="100" role="progressbar" [attr.aria-label]="'Extracting text from PDF: ' + extractProgress() + '%'"> </div>
 						</div>
 						<p class="text-xs text-center mt-1">{{ extractProgress() }}% complete</p>
 					</div>

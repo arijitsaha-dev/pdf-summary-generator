@@ -1,9 +1,9 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
-import { FileUploadComponent } from '../../components/file-upload/file-upload.component';
-import { LoggingService } from '../../services/logging.service';
-import { SummarizationService } from '../../services/summarization.service';
+import { CommonModule } from "@angular/common";
+import { Component, inject, signal } from "@angular/core";
+import { Router } from "@angular/router";
+import { FileUploadComponent } from "../../components/file-upload/file-upload.component";
+import { LoggingService } from "../../services/logging.service";
+import { SummarizationService } from "../../services/summarization.service";
 
 @Component({
 	selector: "app-home",
@@ -50,14 +50,14 @@ export class HomeComponent {
 		try {
 			// Start the streaming summary process
 			const success = await this.summarizationService.processStreamingPdf(file);
-			
+
 			if (success) {
 				this.processingStatus.set(`Processing Complete`);
 				this.isProcessing.set(false);
-				
+
 				// Navigate to summary page with streaming mode indication
-				this.router.navigate(['/summary'], { 
-					queryParams: { mode: 'streaming' } 
+				this.router.navigate(["/summary"], {
+					queryParams: { mode: "streaming" },
 				});
 			} else {
 				throw new Error("Summary generation failed");
@@ -66,10 +66,10 @@ export class HomeComponent {
 			this.errorMessage.set(error instanceof Error ? error.message : "An unknown error occurred");
 			this.isProcessing.set(false);
 			this.processingStatus.set(`Processing failed`);
-			
+
 			this.loggingService.logAction("streaming_summary_error", {
 				filename: file.name,
-				error: error instanceof Error ? error.message : "Unknown error"
+				error: error instanceof Error ? error.message : "Unknown error",
 			});
 		}
 	}

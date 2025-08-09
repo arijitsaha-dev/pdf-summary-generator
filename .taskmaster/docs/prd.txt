@@ -79,7 +79,7 @@ Follow the same TypeScript patterns (strict types, Zod validation) and error han
 
 The user interface MUST match the visual and interaction patterns demonstrated in the HTML prototypes stored in `public/designs/`:
 
-1. `public/designs/2.html` – Landing & upload page (`DocuSummarize` hero section with PDF upload button).
+1. `public/designs/2.html` – Landing & upload page (`Summarizer` hero section with PDF upload button).
 2. `public/designs/3.html` – Two-pane summary view (original PDF preview on the left, AI-generated bullet summary on the right).
 
 Guidelines to follow:

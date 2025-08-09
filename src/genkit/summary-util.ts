@@ -8,12 +8,29 @@
 
 import { Logger } from "../app/services/logger.service";
 import { genkit } from "genkit/beta";
-import { anthropic } from "genkitx-anthropic";
-import { config } from "../genkit/config";
-import { claude3Haiku } from "genkitx-anthropic";
+import { anthropic, claude3Haiku } from "genkitx-anthropic";
 
 // Create a logger instance
 const logger = new Logger();
+
+/**
+ * Configuration interface for GenKit and Anthropic API
+ */
+export interface GenKitConfig {
+	/** Anthropic API key */
+	anthropicApiKey: string;
+	/** Default Claude model to use */
+	defaultModel: string;
+}
+
+/**
+ * Direct config access that doesn't rely on Angular DI - for server usage
+ * Safe to use in non-Angular contexts like Express routes
+ */
+const config: GenKitConfig = {
+	anthropicApiKey: process.env["ANTHROPIC_API_KEY"] || "placeholder-for-ssr",
+	defaultModel: "claude-3-haiku-20240307",
+};
 
 /**
  * Interface for the summary input

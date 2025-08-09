@@ -8,10 +8,10 @@ import {
 } from "@angular/ssr/node";
 import * as dotenv from "dotenv";
 import express, { Request, Response } from "express";
+import multer from "multer";
 import * as path from "node:path";
 import { join } from "node:path";
 import { Logger } from "./app/services/logger.service";
-import multer from "multer";
 const pdf = require("pdf-parse");
 
 const rootDir = process.cwd();
@@ -53,7 +53,7 @@ app.get("/api/health", (req, res) => {
 app.post("/api/summary", async (req, res) => {
 	try {
 		// Import the summary utility function
-		const { summarizePdfText } = await import('./server/summary-util');
+		const { summarizePdfText } = await import('./genkit/summary-util');
 		// Generate summary using our non-Angular utility
 		const result = await summarizePdfText({
 			pdfText: req.body.pdfText,
@@ -123,7 +123,6 @@ app.post("/api/pdf", upload.single("file") as express.RequestHandler, async (req
 
 		logger.log(`Processing PDF: ${filename}, size: ${req.file.buffer.length} bytes`);
 
-		// Dynamically import pdf.js with Node.js compatibility settings
 		pdf(pdfBuffer).then((data: any) => {
 			return res.status(200).json({
 				text: data.text,

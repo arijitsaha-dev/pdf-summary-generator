@@ -4,7 +4,6 @@ import { type OnDestroy } from "@angular/core";
 import { PdfService } from "./pdf.service";
 import { LoggingService } from "./logging.service";
 import { AiService } from "./ai.service";
-import { type StreamingSummaryState } from "./ai.service";
 import { Subject, firstValueFrom, takeUntil } from "rxjs";
 
 /**
@@ -31,12 +30,6 @@ export class SummarizationService implements OnDestroy {
 	readonly progress = signal<number>(0);
 	readonly summaryBullets = signal<string[]>([]);
 	readonly currentFileName = signal<string>("");
-	
-	// Streaming summary state signals
-	readonly isStreamingComplete = signal<boolean>(false);
-	readonly currentBulletIndex = signal<number>(-1);
-	readonly currentBulletText = signal<string>("");
-	readonly streamedBullets = signal<string[]>([]);
 
 	/**
 	 * Validate file before processing
@@ -158,8 +151,8 @@ export class SummarizationService implements OnDestroy {
 	 *
 	 * This method handles the complete workflow with progressive streaming output:
 	 * 1. Extract text from PDF
-	 * 2. Generate streaming summary from the text
-	 * 3. Update UI in real-time as bullet points arrive
+	 * 2. Generate streaming summary from the text using Angular 20 AI streaming pattern
+	 * 3. Update UI in real-time as bullet points are generated
 	 *
 	 * @param file - The PDF file to process
 	 * @returns Promise indicating processing success
@@ -169,8 +162,8 @@ export class SummarizationService implements OnDestroy {
 		this.isProcessing.set(true);
 		this.error.set(null);
 		this.progress.set(0);
-		this.resetStreamingState();
 		this.currentFileName.set(file.name);
+		this.summaryBullets.set([]);
 
 		if (!this.validateFile(file)) {
 			this.isProcessing.set(false);
@@ -188,29 +181,27 @@ export class SummarizationService implements OnDestroy {
 		try {
 			// Extract text from PDF
 			const textResult = await firstValueFrom(this.pdfService.extractTextFromPdf(file));
-			
+
 			if (typeof textResult === "object" && textResult.hasOwnProperty("text")) {
-				// Generate streaming summary
 				this.aiService
 					.generateStreamingSummary(textResult.text as string, file.name)
 					.pipe(takeUntil(this.destroy$))
-					.subscribe(
-						// Update streaming state on each emission
-						(streamState: StreamingSummaryState) => {
-							this.updateStreamingState(streamState);
-						},
-						// Handle errors
-						(error) => {
-							this.error.set(error.message as string);
+					.subscribe({
+						error: (error) => {
+							this.error.set(error instanceof Error ? error.message : "Unknown error");
 							this.isProcessing.set(false);
+							this.loggingService.logAction("pdf_streaming_processing_error", {
+								fileId,
+								error: error instanceof Error ? error.message : "Unknown error",
+							});
 						},
-						// Complete streaming
-						() => {
-							this.isStreamingComplete.set(true);
+						complete: () => {
+							// When streaming is complete, copy the final bullets to the summary
+							this.summaryBullets.set([...this.aiService.streamedBullets()]);
 							this.isProcessing.set(false);
 							this.loggingService.logAction("pdf_streaming_processing_complete", { fileId });
-						}
-					);
+						},
+					});
 			} else {
 				throw new Error("Failed to extract text from PDF");
 			}
@@ -221,37 +212,12 @@ export class SummarizationService implements OnDestroy {
 			this.isProcessing.set(false);
 			this.loggingService.logAction("pdf_streaming_processing_error", {
 				fileId,
-				error: error instanceof Error ? error.message : "Unknown error"
+				error: error instanceof Error ? error.message : "Unknown error",
 			});
 			return false;
 		}
 	}
 
-	/**
-	 * Reset all streaming state signals to initial values
-	 */
-	private resetStreamingState(): void {
-		this.isStreamingComplete.set(false);
-		this.currentBulletIndex.set(-1);
-		this.currentBulletText.set("");
-		this.streamedBullets.set([]);
-	}
-	
-	/**
-	 * Update streaming state signals based on current streaming state
-	 */
-	private updateStreamingState(state: StreamingSummaryState): void {
-		this.isStreamingComplete.set(state.isComplete);
-		this.currentBulletIndex.set(state.currentBulletIndex);
-		this.currentBulletText.set(state.currentBulletText);
-		this.streamedBullets.set([...state.bulletPoints]);
-		
-		// Also update the normal summary bullets when complete
-		if (state.isComplete) {
-			this.summaryBullets.set([...state.bulletPoints]);
-		}
-	}
-	
 	/**
 	 * Cleanup resources when service is destroyed
 	 */

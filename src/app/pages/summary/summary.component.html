@@ -41,7 +41,15 @@
 					<ul class="list-disc pl-6 space-y-2">
 						<!-- Already completed bullets -->
 						@for (bullet of streamedBullets(); track $index) {
-							<li id="StreamedBullet-{{ $index }}" class="text-[var(--text-primary)]">{{ bullet }}</li>
+							@if (bullet) {
+								<li id="StreamedBullet-{{ $index }}" class="text-[var(--text-primary)]">
+									{{ bullet }}
+									<!-- Show typing cursor only at the current bullet position -->
+									@if ($index === currentBulletIndex() && !isStreamingComplete()) {
+										<span class="typing-cursor">|</span>
+									}
+								</li>
+							}
 						}
 					</ul>
 				</div>

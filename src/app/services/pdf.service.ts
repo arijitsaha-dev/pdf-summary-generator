@@ -1,7 +1,7 @@
 import type { OnDestroy } from "@angular/core";
 import { Injectable, inject } from "@angular/core";
-import type { Observable} from "rxjs";
-import { Subject, takeUntil, map, catchError, of } from "rxjs";
+import type { Observable } from "rxjs";
+import { Subject, catchError, map, of, takeUntil } from "rxjs";
 import { HttpClientReqService } from "./global/http-client-req.service";
 // import { LoggerService } from "./global/logger.service";
 
